@@ -1,0 +1,62 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --text: #334155;
+  --text-light: #64748B;
+  --heading: #0F172A;
+  --accent: #0BB5C8;
+  --accent-dark: #0891A8;
+  --accent-light: #E0F7FA;
+  --accent-glow: rgba(11, 181, 200, 0.25);
+  --border: rgba(0, 0, 0, 0.07);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.12);
+  --shadow-accent: 0 8px 30px rgba(11, 181, 200, 0.3);
+  --font: 'Inter', system-ui, sans-serif;
+  --font-heading: 'Syne', system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(11, 181, 200, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(11, 181, 200, 0.6); }
+}
