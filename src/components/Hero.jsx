@@ -33,7 +33,7 @@ export default function Hero() {
   }
 
   return (
-    <section className={styles.hero}>
+    <section id="hero" className={styles.hero}>
       <div className={styles.bg}>
         <div className={styles.blob1} />
         <div className={styles.blob2} />
@@ -69,6 +69,13 @@ export default function Hero() {
             href="mailto:renana@smartyapp.co.il"
           >
             Contact Me
+          </a>
+          <a
+            className={styles.btnSecondary}
+            href="/CV%20Renana%20Friedman%20-%20software%20engineering.pdf"
+            download
+          >
+            Download CV
           </a>
         </div>
       </div>

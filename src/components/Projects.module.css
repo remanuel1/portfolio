@@ -40,7 +40,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 24px;
 }
 
@@ -48,9 +48,12 @@
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 20px;
-  padding: 28px;
+  padding: 32px;
   box-shadow: var(--shadow-sm);
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .card:hover {
@@ -59,27 +62,63 @@
   border-color: rgba(11, 181, 200, 0.3);
 }
 
-.category {
-  font-size: 0.85rem;
-  font-weight: 600;
+.featured {
+  border-color: rgba(11, 181, 200, 0.25);
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdff 100%);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.folderIcon {
   color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.year {
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.cardTitle {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.35;
+  padding-bottom: 0.15em;
+  color: var(--heading);
+  margin: 0;
+}
+
+.cardDesc {
+  color: var(--text-light);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  flex: 1;
+  margin: 0;
 }
 
 .tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin-top: auto;
 }
 
 .tag {
   background: var(--accent-light);
   color: var(--accent-dark);
-  padding: 6px 14px;
+  padding: 5px 13px;
   border-radius: 50px;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 500;
   border: 1px solid rgba(11, 181, 200, 0.2);
   transition: all 0.2s ease;

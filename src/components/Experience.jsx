@@ -1,4 +1,5 @@
 import styles from './Experience.module.css'
+import { useInView } from '../hooks/useInView'
 
 const experiences = [
   {
@@ -34,19 +35,30 @@ const education = [
 ]
 
 export default function Experience() {
+  const [headerRef, headerVisible] = useInView()
+  const [workRef, workVisible] = useInView()
+  const [eduRef, eduVisible] = useInView()
+
   return (
     <section className={styles.section} id="experience">
       <div className={styles.container}>
-        <div className={styles.header}>
+        <div
+          ref={headerRef}
+          className={`${styles.header} fade-up ${headerVisible ? 'visible' : ''}`}
+        >
           <span className={styles.label}>My journey</span>
           <h2 className={styles.title}>Experience & Education</h2>
         </div>
 
         <div className={styles.columns}>
-          <div className={styles.column}>
+          <div ref={workRef} className={styles.column}>
             <h3 className={styles.columnTitle}>Work Experience</h3>
             {experiences.map((exp, i) => (
-              <div key={i} className={styles.card}>
+              <div
+                key={i}
+                className={`${styles.card} fade-up ${workVisible ? 'visible' : ''}`}
+                style={{ '--anim-delay': `${i * 0.1}s` }}
+              >
                 <div className={styles.cardTop}>
                   <div>
                     <div className={styles.role}>{exp.role}</div>
@@ -68,10 +80,14 @@ export default function Experience() {
             ))}
           </div>
 
-          <div className={styles.column}>
+          <div ref={eduRef} className={styles.column}>
             <h3 className={styles.columnTitle}>Education</h3>
             {education.map((edu, i) => (
-              <div key={i} className={styles.card}>
+              <div
+                key={i}
+                className={`${styles.card} fade-up ${eduVisible ? 'visible' : ''}`}
+                style={{ '--anim-delay': `${i * 0.1}s` }}
+              >
                 <div className={styles.cardTop}>
                   <div>
                     <div className={styles.role}>{edu.degree}</div>

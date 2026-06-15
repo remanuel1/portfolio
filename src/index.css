@@ -20,7 +20,7 @@
   --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.12);
   --shadow-accent: 0 8px 30px rgba(11, 181, 200, 0.3);
   --font: 'Inter', system-ui, sans-serif;
-  --font-heading: 'Syne', system-ui, sans-serif;
+  --font-heading: 'Outfit', system-ui, sans-serif;
 }
 
 html {
@@ -33,6 +33,18 @@ body {
   color: var(--text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+}
+
+/* --- Scroll animation classes --- */
+.fade-up {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition-delay: var(--anim-delay, 0s);
+}
+.fade-up.visible {
+  opacity: 1;
+  transform: none;
 }
 
 @keyframes fadeInUp {

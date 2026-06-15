@@ -1,4 +1,5 @@
 import styles from './Skills.module.css'
+import { useInView } from '../hooks/useInView'
 
 const skills = [
   { category: 'Languages', items: ['Java', 'Python', 'JavaScript', 'TypeScript'] },
@@ -9,17 +10,27 @@ const skills = [
 ]
 
 export default function Skills() {
+  const [headerRef, headerVisible] = useInView()
+  const [gridRef, gridVisible] = useInView()
+
   return (
     <section className={styles.section} id="skills">
       <div className={styles.container}>
-        <div className={styles.header}>
+        <div
+          ref={headerRef}
+          className={`${styles.header} fade-up ${headerVisible ? 'visible' : ''}`}
+        >
           <span className={styles.label}>What I know</span>
           <h2 className={styles.title}>Skills & Technologies</h2>
           <p className={styles.subtitle}>Tools and technologies I work with</p>
         </div>
-        <div className={styles.grid}>
-          {skills.map((group) => (
-            <div key={group.category} className={styles.card}>
+        <div ref={gridRef} className={styles.grid}>
+          {skills.map((group, i) => (
+            <div
+              key={group.category}
+              className={`${styles.card} fade-up ${gridVisible ? 'visible' : ''}`}
+              style={{ '--anim-delay': `${i * 0.08}s` }}
+            >
               <h3 className={styles.category}>{group.category}</h3>
               <div className={styles.tags}>
                 {group.items.map((item) => (

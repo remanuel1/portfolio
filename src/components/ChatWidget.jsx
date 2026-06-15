@@ -1,9 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import styles from './ChatWidget.module.css'
+import { useInView } from '../hooks/useInView'
 
 const API_URL = 'http://localhost:8000/query'
 
 export default function ChatWidget() {
+  const [headerRef, headerVisible] = useInView()
+  const [boxRef, boxVisible] = useInView()
+
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([
     { from: 'bot', text: "Hi! I'm Renana's AI avatar 👋 Ask me anything about her background, skills, or experience!" }
@@ -42,12 +46,19 @@ export default function ChatWidget() {
     <>
       <section className={styles.section} id="chat">
         <div className={styles.container}>
-          <div className={styles.header}>
+          <div
+            ref={headerRef}
+            className={`${styles.header} fade-up ${headerVisible ? 'visible' : ''}`}
+          >
             <span className={styles.label}>Powered by RAG + AI</span>
             <h2 className={styles.title}>Chat with My Avatar</h2>
             <p className={styles.subtitle}>Ask me anything about my background, skills, or experience</p>
           </div>
-          <div className={styles.chatBox}>
+          <div
+            ref={boxRef}
+            className={`${styles.chatBox} fade-up ${boxVisible ? 'visible' : ''}`}
+            style={{ '--anim-delay': '0.15s' }}
+          >
             <div className={styles.messages}>
               {messages.map((msg, i) => (
                 <div key={i} className={`${styles.message} ${msg.from === 'user' ? styles.user : styles.bot}`}>
