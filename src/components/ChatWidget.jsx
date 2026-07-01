@@ -1,31 +1,32 @@
 import { useState, useRef, useEffect } from 'react'
 import styles from './ChatWidget.module.css'
-import { useInView } from '../hooks/useInView'
 
-const API_URL = 'http://localhost:8000/query'
+const API_URL = 'http://localhost:8000/avatar-query'
+const AVATAR_IMAGE = 'https://res.cloudinary.com/ddzccqbm2/image/upload/v1782126295/renana_crop_bbosep.png'
+const GREETING = "Hi! I'm Renana's AI avatar. Ask me anything about her background, skills, or experience!"
 
 export default function ChatWidget() {
-  const [headerRef, headerVisible] = useInView()
-  const [boxRef, boxVisible] = useInView()
-
   const [open, setOpen] = useState(false)
-  const [messages, setMessages] = useState([
-    { from: 'bot', text: "Hi! I'm Renana's AI avatar 👋 Ask me anything about her background, skills, or experience!" }
-  ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const bottomRef = useRef(null)
+  const [responseText, setResponseText] = useState(GREETING)
+  const [videoUrl, setVideoUrl] = useState(null)
+  const [showVideo, setShowVideo] = useState(false)
+  const videoRef = useRef(null)
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    const openHandler = () => setOpen(true)
+    window.addEventListener('open-avatar-chat', openHandler)
+    return () => window.removeEventListener('open-avatar-chat', openHandler)
+  }, [])
 
-  const send = async () => {
-    const text = input.trim()
+  const ask = async (question) => {
+    const text = question.trim()
     if (!text || loading) return
     setInput('')
-    setMessages(prev => [...prev, { from: 'user', text }])
     setLoading(true)
+    setShowVideo(false)
+
     try {
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -34,109 +35,88 @@ export default function ChatWidget() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Error')
-      setMessages(prev => [...prev, { from: 'bot', text: data.response }])
+
+      setResponseText(data.response)
+      setVideoUrl(data.video_url)
+
+      // Give the video element a moment to mount/load before swapping it in.
+      setTimeout(() => {
+        setShowVideo(true)
+        setTimeout(() => {
+          videoRef.current?.play().catch(() => {
+            // Autoplay blocked - the video stays paused, user can press play via controls.
+          })
+        }, 100)
+      }, 400)
     } catch {
-      setMessages(prev => [...prev, { from: 'bot', text: "Sorry, I'm having trouble connecting right now. Please try again!" }])
+      setResponseText("Sorry, I'm having trouble connecting right now. Please try again!")
     } finally {
       setLoading(false)
     }
   }
 
-  return (
-    <>
-      <section className={styles.section} id="chat">
-        <div className={styles.container}>
-          <div
-            ref={headerRef}
-            className={`${styles.header} fade-up ${headerVisible ? 'visible' : ''}`}
-          >
-            <span className={styles.label}>Powered by RAG + AI</span>
-            <h2 className={styles.title}>Chat with My Avatar</h2>
-            <p className={styles.subtitle}>Ask me anything about my background, skills, or experience</p>
-          </div>
-          <div
-            ref={boxRef}
-            className={`${styles.chatBox} fade-up ${boxVisible ? 'visible' : ''}`}
-            style={{ '--anim-delay': '0.15s' }}
-          >
-            <div className={styles.messages}>
-              {messages.map((msg, i) => (
-                <div key={i} className={`${styles.message} ${msg.from === 'user' ? styles.user : styles.bot}`}>
-                  {msg.from === 'bot' && <div className={styles.avatar}>RF</div>}
-                  <div className={styles.bubble}>{msg.text}</div>
-                </div>
-              ))}
-              {loading && (
-                <div className={`${styles.message} ${styles.bot}`}>
-                  <div className={styles.avatar}>RF</div>
-                  <div className={styles.bubble}>
-                    <span className={styles.dot} /><span className={styles.dot} /><span className={styles.dot} />
-                  </div>
-                </div>
-              )}
-              <div ref={bottomRef} />
-            </div>
-            <div className={styles.inputRow}>
-              <input
-                className={styles.input}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && send()}
-                placeholder="Ask something about Renana..."
-                disabled={loading}
-              />
-              <button className={styles.sendBtn} onClick={send} disabled={loading || !input.trim()}>
-                Send
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+  const send = () => ask(input)
+  const askWhoAmI = () => ask('Who are you?')
 
-      <button className={styles.fab} onClick={() => setOpen(o => !o)} aria-label="Chat">
-        {open ? '✕' : '💬'}
+  if (!open) {
+    return (
+      <button className={styles.reopenBtn} onClick={() => setOpen(true)} aria-label="Open chat">
+        <img src={AVATAR_IMAGE} alt="" className={styles.reopenImg} />
       </button>
+    )
+  }
 
-      {open && (
-        <div className={styles.floatingChat}>
-          <div className={styles.floatingHeader}>
-            <div className={styles.floatingAvatar}>RF</div>
-            <div>
-              <div className={styles.floatingName}>Renana Friedman</div>
-              <div className={styles.floatingStatus}>● Online</div>
-            </div>
-            <button className={styles.closeBtn} onClick={() => setOpen(false)}>✕</button>
-          </div>
-          <div className={styles.floatingMessages}>
-            {messages.map((msg, i) => (
-              <div key={i} className={`${styles.message} ${msg.from === 'user' ? styles.user : styles.bot}`}>
-                <div className={styles.bubble}>{msg.text}</div>
-              </div>
-            ))}
-            {loading && (
-              <div className={`${styles.message} ${styles.bot}`}>
-                <div className={styles.bubble}>
-                  <span className={styles.dot} /><span className={styles.dot} /><span className={styles.dot} />
-                </div>
-              </div>
-            )}
-            <div ref={bottomRef} />
-          </div>
-          <div className={styles.inputRow}>
-            <input
-              className={styles.input}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && send()}
-              placeholder="Ask me anything..."
-              disabled={loading}
-            />
-            <button className={styles.sendBtn} onClick={send} disabled={loading || !input.trim()}>
-              ➤
-            </button>
-          </div>
+  return (
+    <div className={styles.overlay} onClick={() => setOpen(false)}>
+      <div className={styles.widget} onClick={e => e.stopPropagation()}>
+        <div className={styles.topRow}>
+          <span className={styles.langBadge}>🌐 English</span>
+          <button className={styles.minimizeBtn} onClick={() => setOpen(false)} aria-label="Close">✕</button>
         </div>
-      )}
-    </>
+
+        <div className={styles.circleWrap}>
+          <img
+            src={AVATAR_IMAGE}
+            alt="Renana Friedman"
+            className={`${styles.circleMedia} ${showVideo ? styles.hidden : ''}`}
+          />
+          {videoUrl && (
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              playsInline
+              controls={showVideo}
+              className={`${styles.circleMedia} ${showVideo ? '' : styles.hidden}`}
+              onEnded={() => setShowVideo(false)}
+            />
+          )}
+          {loading && <div className={styles.loadingRing} />}
+        </div>
+
+        <div className={styles.responseBox}>
+          <p>{responseText}</p>
+        </div>
+
+        <div className={styles.quickRow}>
+          <button className={styles.quickBtn} onClick={askWhoAmI} disabled={loading}>
+            💬 Who am I?
+          </button>
+        </div>
+
+        <div className={styles.inputRow}>
+          <input
+            className={styles.input}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && send()}
+            placeholder="Type your question..."
+            disabled={loading}
+          />
+          <button className={styles.sendBtn} onClick={send} disabled={loading || !input.trim()} aria-label="Send">
+            ➤
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }

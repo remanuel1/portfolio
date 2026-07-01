@@ -29,7 +29,7 @@ export default function Hero() {
   }, [displayed, deleting, titleIndex])
 
   const scrollToChat = () => {
-    document.getElementById('chat')?.scrollIntoView({ behavior: 'smooth' })
+    window.dispatchEvent(new CustomEvent('open-avatar-chat'))
   }
 
   return (

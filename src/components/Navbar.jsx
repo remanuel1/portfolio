@@ -6,7 +6,7 @@ const sections = [
   { id: 'skills', label: 'Skills' },
   { id: 'experience', label: 'Experience' },
   { id: 'projects', label: 'Projects' },
-  { id: 'chat', label: 'Chat' },
+  //{ id: 'chat', label: 'Chat' },
 ]
 
 export default function Navbar() {
