@@ -58,7 +58,7 @@
   position: relative;
   width: 220px;
   height: 220px;
-  margin: 0 auto 18px;
+  margin: 0 auto 10px;
   border-radius: 50%;
   overflow: hidden;
   border: 3px solid rgba(255, 255, 255, 0.15);
@@ -91,6 +91,19 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.statusText {
+  text-align: center;
+  color: var(--accent);
+  font-size: 0.8rem;
+  margin: 0 0 10px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 .responseBox {
