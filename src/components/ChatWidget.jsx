@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import styles from './ChatWidget.module.css'
 
-//const API_BASE = 'https://rag-production-a22f.up.railway.app'
+const API_BASE = 'https://rag-production-a22f.up.railway.app'
 const AVATAR_IMAGE = 'https://res.cloudinary.com/ddzccqbm2/image/upload/v1782126295/renana_crop_bbosep.png'
 const GREETING = "Hi! I'm Renana's AI portfolio assistant. I can tell you about her background as a backend developer, the systems and projects she's built, and her technical skills. Feel free to ask me anything!"
 
