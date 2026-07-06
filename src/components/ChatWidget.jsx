@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import styles from './ChatWidget.module.css'
 
-const API_BASE = 'https://rag-production-a22f.up.railway.app'
+//const API_BASE = 'https://rag-production-a22f.up.railway.app'
 const AVATAR_IMAGE = 'https://res.cloudinary.com/ddzccqbm2/image/upload/v1782126295/renana_crop_bbosep.png'
-const GREETING = "Hi! I'm Renana's AI avatar. Ask me anything about her background, skills, or experience!"
+const GREETING = "Hi! I'm Renana's AI portfolio assistant. I can tell you about her background as a backend developer, the systems and projects she's built, and her technical skills. Feel free to ask me anything!"
 
 // כמה זמן לחכות בלי שאלה חדשה לפני שסוגרים את ה-stream לבד (חוסך דקות)
 const INACTIVITY_CLOSE_MS = 3 * 60 * 1000
@@ -92,10 +92,17 @@ export default function ChatWidget() {
       pcRef.current = pc
 
       // כשמגיע track של וידאו/אודיו מ-D-ID, מחברים אותו ל-<video>
+      // מחברים את הוידאו הנכנס ל-<video>, אבל מחליפים מהתמונה לוידאו רק
+      // כשיש בפועל פריים שמתנגן (playing) - לא ברגע שה-WebRTC "מחובר" טכנית,
+      // כי באותו רגע עדיין אין תוכן אמיתי (זה מה שגרם למסך השחור והקפיצה)
       pc.ontrack = (event) => {
         if (videoRef.current && event.streams[0]) {
           videoRef.current.srcObject = event.streams[0]
           videoRef.current.play().catch(() => {})
+          videoRef.current.onplaying = () => {
+            setStreamReady(true)
+            setConnecting(false)
+          }
         }
       }
 
@@ -117,14 +124,14 @@ export default function ChatWidget() {
 
       pc.onconnectionstatechange = () => {
         if (pc.connectionState === 'connected') {
-          setStreamReady(true)
-          setConnecting(false)
-          // "מחממים" את הוידאו מיד עם ברכה - בלי זה, D-ID לא שולח שום פריים
-          // וה-<video> יישאר שחור עד שתישלח שאלה ראשונה
+          // "מחממים" את הוידאו מיד עם ברכה - בלי זה, D-ID לא שולח שום פריים.
+          // התמונה נשארת מוצגת (עם ספינר "Connecting...") עד שהוידאו
+          // *בפועל* מתחיל להתנגן - זה קורה ב-ontrack.onplaying, לא כאן.
           sendToStream(GREETING)
         }
         if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) {
           setStreamReady(false)
+          setConnecting(false)
         }
       }
 
@@ -244,7 +251,7 @@ export default function ChatWidget() {
             playsInline
             autoPlay
             muted={false}
-            className={`${styles.circleMedia} ${streamReady ? '' : styles.hidden}`}
+            className={`${styles.circleMedia} ${styles.avatarVideo} ${streamReady ? '' : styles.hidden}`}
           />
           {/* ספינר בזמן חיבור ה-WebRTC או המתנה ל-LLM */}
           {(connecting || loading) && <div className={styles.loadingRing} />}
