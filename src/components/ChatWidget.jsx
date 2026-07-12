@@ -1,26 +1,26 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import styles from './ChatWidget.module.css'
 
-const API_BASE = 'https://rag-production-a22f.up.railway.app'
+//const API_BASE = 'https://rag-production-a22f.up.railway.app'
+const API_BASE = 'http://localhost:8000'
 const AVATAR_IMAGE = 'https://res.cloudinary.com/ddzccqbm2/image/upload/v1782126295/renana_crop_bbosep.png'
 const GREETING = "Hi! I'm Renana's AI portfolio assistant. I can tell you about her background as a backend developer, the systems and projects she's built, and her technical skills. Feel free to ask me anything!"
 
-// כמה זמן לחכות בלי שאלה חדשה לפני שסוגרים את ה-stream לבד (חוסך דקות)
 const INACTIVITY_CLOSE_MS = 3 * 60 * 1000
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)          // מחכים לתשובת ה-LLM
-  const [connecting, setConnecting] = useState(false)     // מקימים את חיבור ה-WebRTC
-  const [streamReady, setStreamReady] = useState(false)   // החיבור פתוח ומוכן
+  const [loading, setLoading] = useState(false)
+  const [connecting, setConnecting] = useState(false)
+  const [streamReady, setStreamReady] = useState(false)
   const [responseText, setResponseText] = useState(GREETING)
 
   const videoRef = useRef(null)
   const pcRef = useRef(null)               // RTCPeerConnection
   const streamInfoRef = useRef(null)       // { streamId, sessionId }
   const inactivityTimerRef = useRef(null)
-  const isConnectingRef = useRef(false)    // הגנה סינכרונית מפני קריאה כפולה (React StrictMode)
+  const isConnectingRef = useRef(false)
 
   // ---------------------------------------------------------------------
   // פתיחת/סגירת החיבור

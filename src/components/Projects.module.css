@@ -129,3 +129,21 @@
   color: white;
   border-color: var(--accent);
 }
+
+.tryButton {
+  align-self: flex-start;
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tryButton:hover {
+  background: var(--accent-dark);
+  transform: translateY(-2px);
+}

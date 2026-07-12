@@ -176,3 +176,42 @@
   color: var(--accent);
   box-shadow: var(--shadow-md);
 }
+
+.contactWrap {
+  position: relative;
+  display: inline-block;
+}
+
+.contactMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+  z-index: 20;
+}
+
+.contactOption {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.contactOption:hover {
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}

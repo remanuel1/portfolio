@@ -3,12 +3,20 @@ import { useInView } from '../hooks/useInView'
 
 const projects = [
   {
+    title: 'AI Portfolio Assistant',
+    year: '2026',
+    description:
+      'A real-time conversational AI avatar (the one you can chat with on this site!) built with retrieval-augmented generation (RAG) over a vector database, and WebRTC video streaming for near-instant, lifelike video responses.',
+    tags: ['FastAPI', 'LangChain', 'PostgreSQL/pgvector', 'WebRTC', 'OpenAI'],
+    featured: true,
+  },
+  {
     title: 'Allergen Identification',
     year: '2022',
     description:
       'Mobile app that detects allergens in food products by scanning ingredient lists from photos. Uses image processing and OCR to automatically identify and flag allergens.',
     tags: ['Python', 'Kivy', 'Image Processing', 'OCR'],
-    featured: true,
+    featured: false,
   },
   {
     title: 'Full-Stack Learning Projects',
@@ -59,6 +67,14 @@ export default function Projects() {
                   <span key={tag} className={styles.tag}>{tag}</span>
                 ))}
               </div>
+              {p.featured && (
+                <button
+                  className={styles.tryButton}
+                  onClick={() => window.dispatchEvent(new CustomEvent('open-avatar-chat'))}
+                >
+                  💬 Try it now
+                </button>
+              )}
             </div>
           ))}
         </div>
