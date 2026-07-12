@@ -11,6 +11,14 @@ const projects = [
     featured: true,
   },
   {
+    title: 'Smart Expense Tracker',
+    year: '2026',
+    description:
+      'An expense management and tracking system that automatically scans receipts using OCR and classifies them into categories using OpenAI API.',
+    tags: ['FastAPI', 'PostgreSQL', 'OpenAI API', 'OCR', 'Python'],
+    featured: false,
+  },
+  {
     title: 'Allergen Identification',
     year: '2022',
     description:

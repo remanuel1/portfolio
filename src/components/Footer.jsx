@@ -14,6 +14,14 @@ export default function Footer() {
           >
             GitHub
           </a>
+          <a
+            href="https://www.linkedin.com/in/renanafriedman/"
+            target="_blank"
+            rel="noreferrer"
+            className={styles.link}
+          >
+            LinkedIn
+          </a>
           <a href="mailto:renana@smartyapp.co.il" className={styles.link}>
             Email
           </a>
