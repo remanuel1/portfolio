@@ -10,6 +10,7 @@ const INACTIVITY_CLOSE_MS = 3 * 60 * 1000
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false)
+  const [greetingPlaying, setGreetingPlaying] = useState(false)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [connecting, setConnecting] = useState(false)
@@ -17,6 +18,7 @@ export default function ChatWidget() {
   const [responseText, setResponseText] = useState(GREETING)
 
   const videoRef = useRef(null)
+  const greetingVideoRef = useRef(null)
   const pcRef = useRef(null)               // RTCPeerConnection
   const streamInfoRef = useRef(null)       // { streamId, sessionId }
   const inactivityTimerRef = useRef(null)
@@ -124,10 +126,10 @@ export default function ChatWidget() {
 
       pc.onconnectionstatechange = () => {
         if (pc.connectionState === 'connected') {
-          // "מחממים" את הוידאו מיד עם ברכה - בלי זה, D-ID לא שולח שום פריים.
-          // התמונה נשארת מוצגת (עם ספינר "Connecting...") עד שהוידאו
-          // *בפועל* מתחיל להתנגן - זה קורה ב-ontrack.onplaying, לא כאן.
-          sendToStream(GREETING)
+          // לא שולחים יותר warm-up / sendToStream(GREETING) כדי לחסוך בקרדיטים של D-ID.
+          // במקום זאת, הסרטון המקומי מנגן. ה-WebRTC מחובר ברקע בשקט,
+          // והוא יתחיל להזרים וידאו בפועל רק כשהמשתמש ישלח את השאלה הראשונה שלו.
+          setConnecting(false)
         }
         if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) {
           setStreamReady(false)
@@ -155,12 +157,16 @@ export default function ChatWidget() {
     }
   }, [resetInactivityTimer, sendToStream])
 
+  const handleOpen = useCallback(() => {
+    setOpen(true)
+    setGreetingPlaying(true)
+  }, [])
+
   // פותחים את החיבור כשהצ'אט נפתח, סוגרים כשהקומפוננטה מתפרקת
   useEffect(() => {
-    const openHandler = () => setOpen(true)
-    window.addEventListener('open-avatar-chat', openHandler)
-    return () => window.removeEventListener('open-avatar-chat', openHandler)
-  }, [])
+    window.addEventListener('open-avatar-chat', handleOpen)
+    return () => window.removeEventListener('open-avatar-chat', handleOpen)
+  }, [handleOpen])
 
   useEffect(() => {
     if (open) connectStream()
@@ -177,6 +183,15 @@ export default function ChatWidget() {
   const ask = async (question) => {
     const text = question.trim()
     if (!text || loading) return
+
+    // אם המשתמש שואל שאלה בזמן שסרטון הפתיחה עדיין מנגן - נעצור אותו ונציג את התשובה
+    if (greetingPlaying) {
+      if (greetingVideoRef.current) {
+        greetingVideoRef.current.pause()
+        greetingVideoRef.current.currentTime = 0
+      }
+      setGreetingPlaying(false)
+    }
 
     // אם החיבור נסגר (לדוגמה מחוסר פעילות) - פותחים חיבור חדש קודם
     if (!streamInfoRef.current) {
@@ -219,13 +234,22 @@ export default function ChatWidget() {
   const askWhoAmI = () => ask('Who are you?')
 
   const handleClose = () => {
+    if (greetingVideoRef.current) {
+      greetingVideoRef.current.pause()
+      greetingVideoRef.current.currentTime = 0
+    }
+    setGreetingPlaying(false)
     setOpen(false)
     closeStream()
   }
 
+  const handleGreetingEnded = () => {
+    setGreetingPlaying(false)
+  }
+
   if (!open) {
     return (
-      <button className={styles.reopenBtn} onClick={() => setOpen(true)} aria-label="Open chat">
+      <button className={styles.reopenBtn} onClick={handleOpen} aria-label="Open chat">
         <img src={AVATAR_IMAGE} alt="" className={styles.reopenImg} />
       </button>
     )
@@ -240,28 +264,40 @@ export default function ChatWidget() {
         </div>
 
         <div className={styles.circleWrap}>
+          {/* תמונת האווטאר הסטטית - מוצגת רק כששום וידאו לא מנגן (לא ברכת השלום המקומית ולא שידור ה-WebRTC) */}
           <img
             src={AVATAR_IMAGE}
             alt="Renana Friedman"
-            className={`${styles.circleMedia} ${streamReady ? styles.hidden : ''}`}
+            className={`${styles.circleMedia} ${(!greetingPlaying && !streamReady) ? '' : styles.hidden}`}
           />
-          {/* הוידאו תמיד קיים ב-DOM (לא src="", אלא srcObject שמוזן דרך ה-ref) */}
+          
+          {/* 1. וידאו של ברכת השלום המקומית */}
+          <video
+            ref={greetingVideoRef}
+            src="/greeting.mp4"
+            playsInline
+            autoPlay
+            className={`${styles.circleMedia} ${greetingPlaying ? '' : styles.hidden}`}
+            onEnded={handleGreetingEnded}
+          />
+
+          {/* 2. הוידאו החי מ-D-ID דרך WebRTC */}
           <video
             ref={videoRef}
             playsInline
             autoPlay
             muted={false}
-            className={`${styles.circleMedia} ${styles.avatarVideo} ${streamReady ? '' : styles.hidden}`}
+            className={`${styles.circleMedia} ${styles.avatarVideo} ${(!greetingPlaying && streamReady) ? '' : styles.hidden}`}
           />
-          {/* ספינר בזמן חיבור ה-WebRTC או המתנה ל-LLM */}
-          {(connecting || loading) && <div className={styles.loadingRing} />}
+          {/* ספינר בזמן חיבור ה-WebRTC או המתנה ל-LLM. לא מציגים בזמן שסרטון ברכת השלום המקומית רץ */}
+          {!greetingPlaying && (connecting || loading) && <div className={styles.loadingRing} />}
         </div>
 
         {/* סטטוס */}
-        {connecting && (
+        {!greetingPlaying && connecting && (
           <p className={styles.statusText}>Connecting...</p>
         )}
-        {!connecting && loading && (
+        {!greetingPlaying && !connecting && loading && (
           <p className={styles.statusText}>Thinking...</p>
         )}
 
