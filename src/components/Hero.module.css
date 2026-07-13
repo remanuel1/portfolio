@@ -215,3 +215,33 @@
   background: var(--accent-light);
   color: var(--accent-dark);
 }
+
+@media (max-width: 600px) {
+  .hero {
+    padding: 4rem 1rem;
+  }
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    gap: 0.75rem;
+  }
+  .btnPrimary, .btnSecondary {
+    text-align: center;
+  }
+  .contactWrap {
+    display: block;
+    width: 100%;
+  }
+  .contactWrap > button {
+    width: 100%;
+  }
+  .contactMenu {
+    position: static;
+    transform: none;
+    margin-top: 8px;
+    width: 100%;
+  }
+}

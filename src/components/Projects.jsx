@@ -30,7 +30,7 @@ const projects = [
     title: 'Full-Stack Learning Projects',
     year: '2023 – 2024',
     description:
-      'A series of hands-on mini-projects built during a self-paced course — each covering a new topic every few weeks, from REST APIs and databases to full React + Node.js apps.',
+      'A series of hands-on mini-projects built during a self-paced course - each covering a new topic every few weeks, from REST APIs and databases to full React + Node.js apps.',
     tags: ['JavaScript', 'React.js', 'Node.js', 'HTML/CSS'],
     featured: false,
   },

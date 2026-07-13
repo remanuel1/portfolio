@@ -153,3 +153,17 @@
   font-weight: 500;
   border: 1px solid var(--border);
 }
+
+@media (max-width: 600px) {
+  .section {
+    padding: 60px 1.25rem;
+  }
+  .cardTop {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .period {
+    align-self: flex-start;
+  }
+}

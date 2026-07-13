@@ -40,7 +40,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
   gap: 24px;
 }
 
@@ -146,4 +146,10 @@
 .tryButton:hover {
   background: var(--accent-dark);
   transform: translateY(-2px);
+}
+
+@media (max-width: 600px) {
+  .section {
+    padding: 60px 1.25rem;
+  }
 }

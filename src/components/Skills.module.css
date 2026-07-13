@@ -40,7 +40,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 24px;
 }
 
@@ -89,4 +89,10 @@
   background: var(--accent);
   color: white;
   border-color: var(--accent);
+}
+
+@media (max-width: 600px) {
+  .section {
+    padding: 60px 1.25rem;
+  }
 }
