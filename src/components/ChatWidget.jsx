@@ -25,7 +25,7 @@ export default function ChatWidget() {
   const isConnectingRef = useRef(false)
 
   // ---------------------------------------------------------------------
-  // פתיחת/סגירת החיבור
+  // Open/close connection
   // ---------------------------------------------------------------------
 
   const closeStream = useCallback(async () => {
@@ -49,7 +49,7 @@ export default function ChatWidget() {
           body: JSON.stringify({ stream_id: info.streamId, session_id: info.sessionId }),
         })
       } catch {
-        // לא נורא אם הסגירה נכשלת - D-ID סוגר stream-ים לא פעילים לבד
+        // It's okay if close fails - D-ID automatically closes inactive streams
       }
     }
   }, [])
@@ -71,17 +71,17 @@ export default function ChatWidget() {
         body: JSON.stringify({ stream_id: info.streamId, session_id: info.sessionId, text, language: 'English' }),
       })
     } catch {
-      // לא קריטי אם הברכה נכשלת - השאלה הבאה עדיין תעבוד
+      // Not critical if greeting fails - the next query will still work
     }
   }, [])
 
   const connectStream = useCallback(async () => {
-    if (pcRef.current || isConnectingRef.current) return // כבר מחובר/מתחבר
+    if (pcRef.current || isConnectingRef.current) return // Already connected/connecting
     isConnectingRef.current = true
     setConnecting(true)
 
     try {
-      // שלב 1: פותחים stream בבאקאנד, מקבלים offer + ice servers
+      // Step 1: Open stream in backend, receive SDP offer + ICE servers
       const startRes = await fetch(`${API_BASE}/stream/start`, { method: 'POST' })
       const startData = await startRes.json()
       if (!startRes.ok) throw new Error(startData.detail || 'Failed to start stream')
@@ -89,14 +89,14 @@ export default function ChatWidget() {
       const { stream_id: streamId, session_id: sessionId, offer, ice_servers: iceServers } = startData
       streamInfoRef.current = { streamId, sessionId }
 
-      // שלב 2: יוצרים RTCPeerConnection עם שרתי ה-ICE שקיבלנו
+      // Step 2: Create RTCPeerConnection with the received ICE servers
       const pc = new RTCPeerConnection({ iceServers })
       pcRef.current = pc
 
-      // כשמגיע track של וידאו/אודיו מ-D-ID, מחברים אותו ל-<video>
-      // מחברים את הוידאו הנכנס ל-<video>, אבל מחליפים מהתמונה לוידאו רק
-      // כשיש בפועל פריים שמתנגן (playing) - לא ברגע שה-WebRTC "מחובר" טכנית,
-      // כי באותו רגע עדיין אין תוכן אמיתי (זה מה שגרם למסך השחור והקפיצה)
+      // Connect the incoming track from D-ID to the <video> element.
+      // Connect the incoming video, but only switch from image to video when a frame
+      // is actually playing. This avoids the black screen flash that occurs when WebRTC
+      // technically connects but hasn't started rendering content.
       pc.ontrack = (event) => {
         if (videoRef.current && event.streams[0]) {
           videoRef.current.srcObject = event.streams[0]
@@ -108,7 +108,7 @@ export default function ChatWidget() {
         }
       }
 
-      // כל ICE candidate שהדפדפן מגלה - שולחים ל-D-ID דרך הבאקאנד
+      // Send any discovered local ICE candidate to D-ID via the backend
       pc.onicecandidate = (event) => {
         const candidate = event.candidate
         fetch(`${API_BASE}/stream/ice`, {
@@ -126,9 +126,9 @@ export default function ChatWidget() {
 
       pc.onconnectionstatechange = () => {
         if (pc.connectionState === 'connected') {
-          // לא שולחים יותר warm-up / sendToStream(GREETING) כדי לחסוך בקרדיטים של D-ID.
-          // במקום זאת, הסרטון המקומי מנגן. ה-WebRTC מחובר ברקע בשקט,
-          // והוא יתחיל להזרים וידאו בפועל רק כשהמשתמש ישלח את השאלה הראשונה שלו.
+          // We no longer send a warm-up / sendToStream(GREETING) to save D-ID credits.
+          // Instead, the local greeting video plays. WebRTC connects silently in the background
+          // and only starts streaming live video when the user submits their first question.
           setConnecting(false)
         }
         if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) {
@@ -137,7 +137,7 @@ export default function ChatWidget() {
         }
       }
 
-      // שלב 3: מקבלים את ה-offer מ-D-ID, יוצרים answer, ושולחים אותו בחזרה
+      // Step 3: Receive offer from D-ID, create answer, and send it back
       await pc.setRemoteDescription(new RTCSessionDescription(offer))
       const answer = await pc.createAnswer()
       await pc.setLocalDescription(answer)
@@ -162,7 +162,7 @@ export default function ChatWidget() {
     setGreetingPlaying(true)
   }, [])
 
-  // פותחים את החיבור כשהצ'אט נפתח, סוגרים כשהקומפוננטה מתפרקת
+  // Open connection when chat opens, close when component unmounts
   useEffect(() => {
     window.addEventListener('open-avatar-chat', handleOpen)
     return () => window.removeEventListener('open-avatar-chat', handleOpen)
@@ -172,19 +172,19 @@ export default function ChatWidget() {
     if (open) connectStream()
   }, [open, connectStream])
 
-  // הערה: בכוונה אין כאן useEffect שסוגר את ה-stream ב-unmount.
-  // ב-React StrictMode (dev) זה היה גורם לסגירה מיידית של stream טרי לפני שהתחבר.
-  // הסגירה מתבצעת: (1) בלחיצה על X, (2) אחרי חוסר פעילות, (3) D-ID סוגר stream יתום לבד ממילא.
+  // Note: We deliberately do not close the stream on unmount here.
+  // In React StrictMode (development), this would immediately close a newly initialized stream before it connects.
+  // Closure is handled via: (1) Clicking the close button, (2) Inactivity timeout, (3) D-ID automatically closes orphaned streams.
 
   // ---------------------------------------------------------------------
-  // שליחת שאלה
+  // Send query
   // ---------------------------------------------------------------------
 
   const ask = async (question) => {
     const text = question.trim()
     if (!text || loading) return
 
-    // אם המשתמש שואל שאלה בזמן שסרטון הפתיחה עדיין מנגן - נעצור אותו ונציג את התשובה
+    // If the user submits a question while the greeting video is still playing, pause it and transition to the live response
     if (greetingPlaying) {
       if (greetingVideoRef.current) {
         greetingVideoRef.current.pause()
@@ -193,7 +193,7 @@ export default function ChatWidget() {
       setGreetingPlaying(false)
     }
 
-    // אם החיבור נסגר (לדוגמה מחוסר פעילות) - פותחים חיבור חדש קודם
+    // Reconnect if the stream connection was closed (e.g., due to inactivity)
     if (!streamInfoRef.current) {
       await connectStream()
     }
@@ -221,7 +221,7 @@ export default function ChatWidget() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Error')
 
-      // הטקסט מוצג מיד; הוידאו כבר מתחיל "לדבר" דרך ה-stream הפתוח כמעט מיידית
+      // Display response text immediately; video stream starts playing almost instantly
       setResponseText(data.response)
     } catch {
       setResponseText("Sorry, I'm having trouble connecting right now. Please try again!")
@@ -264,14 +264,14 @@ export default function ChatWidget() {
         </div>
 
         <div className={styles.circleWrap}>
-          {/* תמונת האווטאר הסטטית - מוצגת רק כששום וידאו לא מנגן (לא ברכת השלום המקומית ולא שידור ה-WebRTC) */}
+          {/* Static avatar image - shown only when no video is active (neither local greeting nor live WebRTC stream) */}
           <img
             src={AVATAR_IMAGE}
             alt="Renana Friedman"
             className={`${styles.circleMedia} ${(!greetingPlaying && !streamReady) ? '' : styles.hidden}`}
           />
           
-          {/* 1. וידאו של ברכת השלום המקומית */}
+          {/* 1. Local greeting video */}
           <video
             ref={greetingVideoRef}
             src="/greeting.mp4"
@@ -281,7 +281,7 @@ export default function ChatWidget() {
             onEnded={handleGreetingEnded}
           />
 
-          {/* 2. הוידאו החי מ-D-ID דרך WebRTC */}
+          {/* 2. Live WebRTC video stream from D-ID */}
           <video
             ref={videoRef}
             playsInline
@@ -289,11 +289,11 @@ export default function ChatWidget() {
             muted={false}
             className={`${styles.circleMedia} ${styles.avatarVideo} ${(!greetingPlaying && streamReady) ? '' : styles.hidden}`}
           />
-          {/* ספינר בזמן חיבור ה-WebRTC או המתנה ל-LLM. לא מציגים בזמן שסרטון ברכת השלום המקומית רץ */}
+          {/* Spinner shown during WebRTC connection or LLM processing. Hidden while the local greeting video is playing */}
           {!greetingPlaying && (connecting || loading) && <div className={styles.loadingRing} />}
         </div>
 
-        {/* סטטוס */}
+        {/* Status overlay */}
         {!greetingPlaying && connecting && (
           <p className={styles.statusText}>Connecting...</p>
         )}
