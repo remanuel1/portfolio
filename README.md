@@ -1,16 +1,50 @@
-# React + Vite
+# Renana Friedman - Personal Portfolio Website
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+🔗 **Live Website:** [renana-friedman.up.railway.app](https://renana-friedman.up.railway.app/)
 
-Currently, two official plugins are available:
+Welcome to my personal portfolio website! This project showcases my professional journey, skills, and projects as a Backend Developer. It features a modern, responsive design and integrates a real-time conversational AI avatar.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Key Features
 
-## React Compiler
+*   **AI Portfolio Assistant (RAG + WebRTC):** An interactive, real-time digital avatar representing me. Visitors can chat with the avatar to ask questions about my background, skills, and experience.
+    *   **Retrieval-Augmented Generation (RAG):** The assistant queries a PostgreSQL database using `pgvector` semantic search over my CV and interview materials.
+    *   **WebRTC Video Streaming:** Integrates with the D-ID API to stream video responses with near-zero latency, including a cost-efficient local video greeting.
+*   **Projects Showcase:** A curated, balanced 2x2 grid highlighting my technical projects, such as the *Smart Expense Tracker* and *Allergen Identification* mobile app.
+*   **Interactive Experience & Education Timeline:** Highlights my professional work experience (including custom WhatsApp bots verified by Meta) and my BSc in Software Engineering (JCT, GPA 90).
+*   **Fully Responsive UI:** Optimized for desktop and mobile layouts with smooth CSS cross-fade transitions and modern typography.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 💻 Tech Stack
 
-## Expanding the ESLint configuration
+### Frontend
+*   **Core:** React (Functional Components, Custom Hooks)
+*   **Build Tool:** Vite
+*   **Styling:** Vanilla CSS (CSS Modules for scope safety)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Backend (RAG Assistant)
+*   **API Framework:** FastAPI (Python)
+*   **AI & LLM Orchestration:** LangChain, OpenAI API (`gpt-4o-mini`, Embeddings)
+*   **Database:** PostgreSQL with `pgvector` extension for vector search
+*   **Video Generation:** D-ID API (WebRTC Streaming)
+
+## 🛠️ Getting Started
+
+To run the frontend locally:
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/remanuel1/portfolio.git
+    cd portfolio
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
+    Open `http://localhost:5173` in your browser.
+
+*Note: The AI avatar assistant requires the RAG backend server to be running. See the RAG backend repository instructions for setup.*
