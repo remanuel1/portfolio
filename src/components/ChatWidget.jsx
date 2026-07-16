@@ -259,7 +259,6 @@ export default function ChatWidget() {
     <div className={styles.overlay} onClick={handleClose}>
       <div className={styles.widget} onClick={e => e.stopPropagation()}>
         <div className={styles.topRow}>
-          <span className={styles.langBadge}>🌐 English</span>
           <button className={styles.minimizeBtn} onClick={handleClose} aria-label="Close">✕</button>
         </div>
 
