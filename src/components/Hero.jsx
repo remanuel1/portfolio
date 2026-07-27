@@ -108,7 +108,7 @@ export default function Hero() {
               <div className={styles.contactMenu}>
                 <a
                   className={styles.contactOption}
-                  href="mailto:renana@smartyapp.co.il"
+                  href="mailto:renana12ema@gmail.com"
                   onClick={() => setContactOpen(false)}
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
@@ -129,7 +129,7 @@ export default function Hero() {
           </div>
           <a
             className={styles.btnSecondary}
-            href="/CV%20Renana%20Friedman%20-%20software%20engineering.pdf"
+            href="/CV%20Renana%20Friedman%20-%20Backend%20Developer.pdf"
             download
           >
             Download CV
