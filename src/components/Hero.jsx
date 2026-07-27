@@ -129,8 +129,8 @@ export default function Hero() {
           </div>
           <a
             className={styles.btnSecondary}
-            href="/CV%20Renana%20Friedman%20-%20Backend%20Developer.pdf"
-            download
+            href="/CV_Renana_Friedman.pdf"
+            download="CV Renana Friedman - Backend Developer.pdf"
           >
             Download CV
           </a>
