@@ -134,6 +134,12 @@ export default function ChatWidget() {
         if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) {
           setStreamReady(false)
           setConnecting(false)
+          streamInfoRef.current = null
+          isConnectingRef.current = false
+          if (pcRef.current) {
+            pcRef.current.close()
+            pcRef.current = null
+          }
         }
       }
 
@@ -195,8 +201,8 @@ export default function ChatWidget() {
       setGreetingPlaying(false)
     }
 
-    // Reconnect if the stream connection was closed (e.g., due to inactivity)
-    if (!streamInfoRef.current) {
+    // Reconnect if the stream connection was closed or disconnected (e.g., due to inactivity)
+    if (!streamInfoRef.current || (pcRef.current && ['failed', 'disconnected', 'closed'].includes(pcRef.current.connectionState))) {
       await connectStream()
     }
     if (!streamInfoRef.current) {
@@ -225,6 +231,15 @@ export default function ChatWidget() {
 
       // Display response text immediately; video stream starts playing almost instantly
       setResponseText(data.response)
+
+      // Ensure video element plays when stream receives video frames
+      if (videoRef.current) {
+        videoRef.current.play().then(() => {
+          setStreamReady(true)
+        }).catch((err) => {
+          console.warn('Video play trigger catch:', err)
+        })
+      }
     } catch {
       setResponseText("Sorry, I'm having trouble connecting right now. Please try again!")
     } finally {
@@ -290,6 +305,8 @@ export default function ChatWidget() {
             playsInline
             autoPlay
             muted={false}
+            onPlaying={() => setStreamReady(true)}
+            onLoadedData={() => setStreamReady(true)}
             className={`${styles.circleMedia} ${styles.avatarVideo} ${(!greetingPlaying && streamReady) ? '' : styles.hidden}`}
           />
           {/* Spinner shown during WebRTC connection or LLM processing. Hidden while the local greeting video is playing */}
