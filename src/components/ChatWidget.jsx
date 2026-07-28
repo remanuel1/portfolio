@@ -160,6 +160,8 @@ export default function ChatWidget() {
   const handleOpen = useCallback(() => {
     setOpen(true)
     setGreetingPlaying(true)
+    setResponseText(GREETING)
+    setInput('')
   }, [])
 
   // Open connection when chat opens, close when component unmounts
@@ -239,6 +241,8 @@ export default function ChatWidget() {
       greetingVideoRef.current.currentTime = 0
     }
     setGreetingPlaying(false)
+    setResponseText(GREETING)
+    setInput('')
     setOpen(false)
     closeStream()
   }
