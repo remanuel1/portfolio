@@ -75,6 +75,33 @@ export default function ChatWidget() {
     }
   }, [])
 
+  const waitForConnection = (pc, timeoutMs = 8000) => {
+    return new Promise((resolve) => {
+      if (pc && pc.connectionState === 'connected') {
+        resolve(true)
+        return
+      }
+      const timer = setTimeout(() => resolve(false), timeoutMs)
+      const checkState = () => {
+        if (pc.connectionState === 'connected') {
+          clearTimeout(timer)
+          pc.removeEventListener('connectionstatechange', checkState)
+          resolve(true)
+        } else if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) {
+          clearTimeout(timer)
+          pc.removeEventListener('connectionstatechange', checkState)
+          resolve(false)
+        }
+      }
+      if (pc) {
+        pc.addEventListener('connectionstatechange', checkState)
+      } else {
+        clearTimeout(timer)
+        resolve(false)
+      }
+    })
+  }
+
   const connectStream = useCallback(async () => {
     if (pcRef.current || isConnectingRef.current) return // Already connected/connecting
     isConnectingRef.current = true
@@ -94,13 +121,13 @@ export default function ChatWidget() {
       pcRef.current = pc
 
       // Connect the incoming track from D-ID to the <video> element.
-      // Connect the incoming video, but only switch from image to video when a frame
-      // is actually playing. This avoids the black screen flash that occurs when WebRTC
-      // technically connects but hasn't started rendering content.
       pc.ontrack = (event) => {
         if (videoRef.current && event.streams[0]) {
           videoRef.current.srcObject = event.streams[0]
-          videoRef.current.play().catch(() => {})
+          videoRef.current.play().then(() => {
+            setStreamReady(true)
+            setConnecting(false)
+          }).catch(() => {})
           videoRef.current.onplaying = () => {
             setStreamReady(true)
             setConnecting(false)
@@ -126,9 +153,6 @@ export default function ChatWidget() {
 
       pc.onconnectionstatechange = () => {
         if (pc.connectionState === 'connected') {
-          // We no longer send a warm-up / sendToStream(GREETING) to save D-ID credits.
-          // Instead, the local greeting video plays. WebRTC connects silently in the background
-          // and only starts streaming live video when the user submits their first question.
           setConnecting(false)
         }
         if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) {
@@ -155,6 +179,9 @@ export default function ChatWidget() {
       })
 
       resetInactivityTimer()
+
+      // Wait until WebRTC is fully connected before completing stream initialization
+      await waitForConnection(pc, 8000)
     } catch (err) {
       console.error('Stream connection failed:', err)
       setConnecting(false)
@@ -201,8 +228,9 @@ export default function ChatWidget() {
       setGreetingPlaying(false)
     }
 
-    // Reconnect if the stream connection was closed or disconnected (e.g., due to inactivity)
-    if (!streamInfoRef.current || (pcRef.current && ['failed', 'disconnected', 'closed'].includes(pcRef.current.connectionState))) {
+    // Reconnect if the stream connection is missing, closed, or not fully connected
+    if (!streamInfoRef.current || !pcRef.current || pcRef.current.connectionState !== 'connected') {
+      await closeStream()
       await connectStream()
     }
     if (!streamInfoRef.current) {
@@ -215,8 +243,8 @@ export default function ChatWidget() {
     resetInactivityTimer()
 
     try {
-      const { streamId, sessionId } = streamInfoRef.current
-      const res = await fetch(`${API_BASE}/stream/send-text`, {
+      let { streamId, sessionId } = streamInfoRef.current
+      let res = await fetch(`${API_BASE}/stream/send-text`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -226,6 +254,27 @@ export default function ChatWidget() {
           language: 'English',
         }),
       })
+
+      // If D-ID stream session expired or failed on backend, attempt stream reconnect and retry once
+      if (!res.ok) {
+        console.warn('Initial send-text failed, attempting stream reconnect...')
+        await closeStream()
+        await connectStream()
+        if (streamInfoRef.current) {
+          const fresh = streamInfoRef.current
+          res = await fetch(`${API_BASE}/stream/send-text`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              stream_id: fresh.streamId,
+              session_id: fresh.sessionId,
+              query_text: text,
+              language: 'English',
+            }),
+          })
+        }
+      }
+
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Error')
 
